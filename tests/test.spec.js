@@ -44,7 +44,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("Purchase 1 Node", async ({ wallet, page }) => {
-  test.setTimeout(60000);
   await page.getByRole("navigation").getByRole("button").nth(1).click();
   await page.getByRole("checkbox").check();
   await page
