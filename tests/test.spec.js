@@ -40,7 +40,7 @@ const test = baseTest.extend({
 });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("https://node-staging.0gfoundation.ai/");
+  await page.goto("https://zerog-stg.netlify.app/");
 });
 
 test("Purchase 1 Node", async ({ wallet, page }) => {
