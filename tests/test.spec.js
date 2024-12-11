@@ -10,7 +10,7 @@ const test = baseTest.extend({
       wallet: "metamask",
       version: MetaMaskWallet.recommendedVersion,
       seed: process.env.WALLET_SEED,
-      headless: false,
+      headless: !!process.env.CI,
     });
 
     // Add Arbitrum Sepolia as a network
