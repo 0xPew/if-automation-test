@@ -202,6 +202,26 @@ test.describe("Node Purchase Flow", () => {
       page.getByText("Your recent purchase attempt was unsuccessful")
     ).toBeVisible();
   });
+
+  test("should prevent double submission during purchase", async ({
+    wallet,
+    page,
+  }) => {
+    // --- ARRANGE ---
+    await switchToStagingIDO(page);
+    await connectWallet(page, wallet);
+
+    // --- ACT ---
+    await initiateNodePurchase(page, 1);
+    await handleTokenApproval(page, wallet);
+
+    await page.getByRole("button", { name: "Purchase" }).click();
+    await page.getByRole("button", { name: "Agree" }).click();
+    await page.getByLabel("Close the dialog").click();
+
+    // --- ASSERT ---
+    await expect(page.getByRole("button", { name: "Purchase" })).toBeDisabled();
+  });
 });
 
 const test2 = baseTest.extend({
