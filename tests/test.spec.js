@@ -137,6 +137,26 @@ test.describe("Node Purchase Flow", () => {
     ).toBeDisabled();
   });
 
+  test("should convert decimal node amounts to whole numbers", async ({
+    wallet,
+    page,
+  }) => {
+    // --- ARRANGE ---
+    await switchToStagingIDO(page);
+    await connectWallet(page, wallet);
+
+    // --- ACT ---
+    await initiateNodePurchase(page, 1.5);
+
+    // --- ASSERT ---
+    expect(async () => {
+      const value = await page
+        .getByRole("textbox", { name: "Token Amount" })
+        .inputValue();
+      return Number.isInteger(Number(value));
+    }).toBeTruthy();
+  });
+
   test("should disable purchase button when amount exceeds maximum limit", async ({
     wallet,
     page,
