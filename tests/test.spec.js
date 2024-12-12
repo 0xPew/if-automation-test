@@ -235,6 +235,7 @@ test.describe("Node Purchase Flow", () => {
     for (let i = 0; i < 2; i++) {
       await initiateNodePurchase(page, 1);
       await handleTokenApproval(page, wallet);
+
       await page.getByRole("button", { name: "Purchase" }).click();
       if (i === 0) {
         await page.getByRole("button", { name: "Agree" }).click();
@@ -253,6 +254,25 @@ test.describe("Node Purchase Flow", () => {
       // --- ASSERT ---
       await expect(page.getByText("Purchased 1 NODE")).toBeVisible();
     }
+  });
+
+  test("should not proceed with purchase when agreement is rejected", async ({
+    wallet,
+    page,
+  }) => {
+    // --- ARRANGE ---
+    await switchToStagingIDO(page);
+    await connectWallet(page, wallet);
+
+    // --- ACT ---
+    await initiateNodePurchase(page, 1);
+    await handleTokenApproval(page, wallet);
+
+    await page.getByRole("button", { name: "Purchase" }).click();
+    await page.getByLabel("Close the dialog").click();
+
+    // --- ASSERT ---
+    await expect(page.getByText("Confirm Purchase")).not.toBeVisible();
   });
 });
 
