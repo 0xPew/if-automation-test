@@ -51,6 +51,14 @@ async function initiateNodePurchase(page, amount) {
     .fill(amount.toString());
 }
 
+async function handleTokenApproval(page, wallet) {
+  const approveButton = page.getByRole("button", { name: "Approve" });
+  if (await approveButton.isVisible()) {
+    await approveButton.click();
+    await wallet.sign();
+  }
+}
+
 const test = baseTest.extend({
   context: async ({}, use) => {
     const [wallet, _, context] = await initializeWallet();
@@ -68,6 +76,10 @@ test.beforeEach(async ({ page }) => {
   await page.goto("https://zerog-stg.netlify.app/");
 });
 
+test.afterEach(async ({ context }) => {
+  await context.close();
+});
+
 test.describe("Node Purchase Flow", () => {
   test("should successfully purchase a single node when funds are available", async ({
     wallet,
@@ -79,13 +91,7 @@ test.describe("Node Purchase Flow", () => {
 
     // --- ACT ---
     await initiateNodePurchase(page, 1);
-
-    // Handle token approval
-    const approveButton = page.getByRole("button", { name: "Approve" });
-    if (await approveButton.isVisible()) {
-      await approveButton.click();
-      await wallet.sign();
-    }
+    await handleTokenApproval(page, wallet);
 
     // Complete purchase
     await page.getByRole("button", { name: "Purchase" }).click();
@@ -173,6 +179,29 @@ test.describe("Node Purchase Flow", () => {
       page.getByRole("button", { name: "Exceeded Purchase Limit" })
     ).toBeDisabled();
   });
+
+  test("should handle purchase transaction rejection", async ({
+    wallet,
+    page,
+  }) => {
+    // --- ARRANGE ---
+    await switchToStagingIDO(page);
+    await connectWallet(page, wallet);
+
+    // --- ACT ---
+    await initiateNodePurchase(page, 1);
+    await handleTokenApproval(page, wallet);
+
+    // Reject transaction
+    await page.getByRole("button", { name: "Purchase" }).click();
+    await page.getByRole("button", { name: "Agree" }).click();
+    await wallet.reject();
+
+    // --- ASSERT ---
+    await expect(
+      page.getByText("Your recent purchase attempt was unsuccessful")
+    ).toBeVisible();
+  });
 });
 
 const test2 = baseTest.extend({
@@ -192,6 +221,10 @@ const test2 = baseTest.extend({
 
 test2.beforeEach(async ({ page }) => {
   await page.goto("https://zerog-stg.netlify.app/");
+});
+
+test2.afterEach(async ({ context }) => {
+  await context.close();
 });
 
 test2.describe("Node Purchase Validation", () => {
