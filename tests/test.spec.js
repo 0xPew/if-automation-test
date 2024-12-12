@@ -285,7 +285,6 @@ test.describe("Node Purchase Flow", () => {
 
     // --- ACT ---
     await initiateNodePurchase(page, "abc");
-    await page.pause();
 
     // --- ASSERT ---
     await expect(
