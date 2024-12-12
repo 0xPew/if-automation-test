@@ -68,8 +68,11 @@ test.beforeEach(async ({ page }) => {
   await page.goto("https://zerog-stg.netlify.app/");
 });
 
-test.describe("Node Purchase Tests", () => {
-  test("Purchase a node", async ({ wallet, page }) => {
+test.describe("Node Purchase Flow", () => {
+  test("should successfully purchase a single node when funds are available", async ({
+    wallet,
+    page,
+  }) => {
     // --- ARRANGE ---
     await switchToStagingIDO(page);
     await connectWallet(page, wallet);
@@ -100,7 +103,10 @@ test.describe("Node Purchase Tests", () => {
     await expect(page.getByText("Purchased 1 NODE")).toBeVisible();
   });
 
-  test("Purchase with zero nodes", async ({ wallet, page }) => {
+  test("should disable purchase button when amount is zero", async ({
+    wallet,
+    page,
+  }) => {
     // --- ARRANGE ---
     await switchToStagingIDO(page);
     await connectWallet(page, wallet);
@@ -110,11 +116,31 @@ test.describe("Node Purchase Tests", () => {
 
     // --- ASSERT ---
     await expect(
-      page.locator("div").filter({ hasText: /^Enter an amount$/ })
-    ).toBeVisible();
+      page.getByRole("button", { name: "Enter an amount" })
+    ).toBeDisabled();
   });
 
-  test("Purchase exceeding max limit", async ({ wallet, page }) => {
+  test("should disable purchase button when amount is negative", async ({
+    wallet,
+    page,
+  }) => {
+    // --- ARRANGE ---
+    await switchToStagingIDO(page);
+    await connectWallet(page, wallet);
+
+    // --- ACT ---
+    await initiateNodePurchase(page, -1);
+
+    // --- ASSERT ---
+    await expect(
+      page.getByRole("button", { name: "Enter an amount" })
+    ).toBeDisabled();
+  });
+
+  test("should disable purchase button when amount exceeds maximum limit", async ({
+    wallet,
+    page,
+  }) => {
     // --- ARRANGE ---
     await switchToStagingIDO(page);
     await connectWallet(page, wallet);
@@ -124,8 +150,8 @@ test.describe("Node Purchase Tests", () => {
 
     // --- ASSERT ---
     await expect(
-      page.locator("div").filter({ hasText: /^Exceeded Purchase Limit$/ })
-    ).toBeVisible();
+      page.getByRole("button", { name: "Exceeded Purchase Limit" })
+    ).toBeDisabled();
   });
 });
 
@@ -148,18 +174,21 @@ test2.beforeEach(async ({ page }) => {
   await page.goto("https://zerog-stg.netlify.app/");
 });
 
-test2.describe("Node Purchase Tests With Empty Wallet", () => {
-  test2("Purchase a node with empty wallet", async ({ wallet, page }) => {
-    // --- ARRANGE ---
-    await switchToStagingIDO(page);
-    await connectWallet(page, wallet);
+test2.describe("Node Purchase Validation", () => {
+  test2(
+    "should display insufficient balance message when wallet has no funds",
+    async ({ wallet, page }) => {
+      // --- ARRANGE ---
+      await switchToStagingIDO(page);
+      await connectWallet(page, wallet);
 
-    // --- ACT ---
-    await initiateNodePurchase(page, 1);
+      // --- ACT ---
+      await initiateNodePurchase(page, 1);
 
-    // --- ASSERT ---
-    await expect(
-      page.locator("div").filter({ hasText: /^Insufficient TUSD Balance$/ })
-    ).toBeVisible();
-  });
+      // --- ASSERT ---
+      await expect(
+        page.getByRole("button", { name: "Insufficient TUSD Balance" })
+      ).toBeDisabled();
+    }
+  );
 });
