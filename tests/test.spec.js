@@ -98,7 +98,7 @@ test.describe("Node Purchase Flow", () => {
     await page.getByRole("button", { name: "Agree" }).click();
     await wallet.sign();
 
-    // Close success dialog
+    // Close dialog
     await page
       .locator("div")
       .filter({ hasText: /^Share to earn rewards$/ })
@@ -221,6 +221,38 @@ test.describe("Node Purchase Flow", () => {
 
     // --- ASSERT ---
     await expect(page.getByRole("button", { name: "Purchase" })).toBeDisabled();
+  });
+
+  test("should successfully purchase multiple nodes in succession", async ({
+    wallet,
+    page,
+  }) => {
+    // --- ARRANGE ---
+    await switchToStagingIDO(page);
+    await connectWallet(page, wallet);
+
+    // --- ACT ---
+    for (let i = 0; i < 2; i++) {
+      await initiateNodePurchase(page, 1);
+      await handleTokenApproval(page, wallet);
+      await page.getByRole("button", { name: "Purchase" }).click();
+      if (i === 0) {
+        await page.getByRole("button", { name: "Agree" }).click();
+      }
+      await wallet.sign();
+
+      if (i === 0) {
+        // Close dialog
+        await page
+          .locator("div")
+          .filter({ hasText: /^Share to earn rewards$/ })
+          .getByRole("button")
+          .click();
+      }
+
+      // --- ASSERT ---
+      await expect(page.getByText("Purchased 1 NODE")).toBeVisible();
+    }
   });
 });
 
