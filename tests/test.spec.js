@@ -274,6 +274,41 @@ test.describe("Node Purchase Flow", () => {
     // --- ASSERT ---
     await expect(page.getByText("Confirm Purchase")).not.toBeVisible();
   });
+
+  test("should handle invalid non-numeric token amount input", async ({
+    wallet,
+    page,
+  }) => {
+    // --- ARRANGE ---
+    await switchToStagingIDO(page);
+    await connectWallet(page, wallet);
+
+    // --- ACT ---
+    await initiateNodePurchase(page, "abc");
+    await page.pause();
+
+    // --- ASSERT ---
+    await expect(
+      page.getByRole("textbox", { name: "Token Amount" })
+    ).toHaveValue("");
+  });
+
+  test("should handle special characters in token amount input", async ({
+    wallet,
+    page,
+  }) => {
+    // --- ARRANGE ---
+    await switchToStagingIDO(page);
+    await connectWallet(page, wallet);
+
+    // --- ACT ---
+    await initiateNodePurchase(page, "@#$%");
+
+    // --- ASSERT ---
+    await expect(
+      page.getByRole("textbox", { name: "Token Amount" })
+    ).toHaveValue("");
+  });
 });
 
 const test2 = baseTest.extend({
