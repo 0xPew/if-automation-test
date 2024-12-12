@@ -100,6 +100,20 @@ test.describe("Node Purchase Tests", () => {
     await expect(page.getByText("Purchased 1 NODE")).toBeVisible();
   });
 
+  test("Purchase with zero nodes", async ({ wallet, page }) => {
+    // --- ARRANGE ---
+    await switchToStagingIDO(page);
+    await connectWallet(page, wallet);
+
+    // --- ACT ---
+    await initiateNodePurchase(page, 0);
+
+    // --- ASSERT ---
+    await expect(
+      page.locator("div").filter({ hasText: /^Enter an amount$/ })
+    ).toBeVisible();
+  });
+
   test("Purchase exceeding max limit", async ({ wallet, page }) => {
     // --- ARRANGE ---
     await switchToStagingIDO(page);
