@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [main, master]
 jobs:
-  test:
+  error-handling:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     env:
@@ -27,14 +27,82 @@ jobs:
           npx playwright install chromium
           npx playwright install-deps chromium
 
-      - name: Run Playwright tests
+      - name: Run Error Handling tests
         env:
           PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium-browser
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test tests/error-handling.spec.js
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-error-handling
+          path: playwright-report/
+          retention-days: 30
+
+  input-validation:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    env:
+      WALLET_SEED: ${{ secrets.WALLET_SEED }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+          npm ci
+
+      - name: Install Playwright
+        run: |
+          npx playwright install chromium
+          npx playwright install-deps chromium
+
+      - name: Run Input Validation tests
+        env:
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium-browser
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test tests/input-validation.spec.js
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-input-validation
+          path: playwright-report/
+          retention-days: 30
+
+  successful-purchase:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    env:
+      WALLET_SEED: ${{ secrets.WALLET_SEED }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+          npm ci
+
+      - name: Install Playwright
+        run: |
+          npx playwright install chromium
+          npx playwright install-deps chromium
+
+      - name: Run Successful Purchase tests
+        env:
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium-browser
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test tests/successful-purchase.spec.js
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-successful-purchase
           path: playwright-report/
           retention-days: 30
