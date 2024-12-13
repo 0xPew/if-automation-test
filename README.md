@@ -43,7 +43,7 @@ npx playwright test tests/[test-file-name].spec.js
 
 ## Test Reports
 
-After running tests, to view test results, run:
+After running tests, if the report doesn't open automatically, you can view it by running:
 
 ```bash
 npx playwright show-report
